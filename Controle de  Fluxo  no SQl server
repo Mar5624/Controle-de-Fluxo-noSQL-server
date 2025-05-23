@@ -1,0 +1,75 @@
+--Aula 34
+--BEGIN ... END
+--Controle de Fluxo  das instrução T-SQL (Transaction SQL)
+----------------------------------------------------------
+
+use
+
+SQL_Curso_1
+
+go
+
+
+SELECT x.*
+  INTO tTemp 
+  FROM (
+		 select row_number() over( order by id_aluno) linha, 
+		        y.id_aluno, y.nome, y.sexo, y.nome_curso, y.data_inicio, y.data_termino, y.valor
+		   from (
+		 select  a.id_aluno, a.nome, a.sexo, c.nome_curso, t.data_inicio, t.data_termino, at.valor
+			from alunosxturmas at
+				 inner join turmas t on (t.id_turma = at.id_turma)
+				 inner join cursos c on (c.id_curso = t.id_curso)
+ 				 inner join alunos a on (a.id_aluno = at.id_aluno) ) y
+	   ) x;
+
+select * from tTemp;
+
+
+--------
+
+declare @vContador int  =1
+ while @vContador <10
+  begin
+  print ' Contador'  +  convert(varchar,@vContador)
+  set  @vContador += 1
+  end 
+
+ ----- Sem begin alinhado
+
+ begin   transaction
+
+ if  @@TRANCOUNT = 0
+
+
+select  nome,nome_curso, sexo
+
+from tTemp
+where sexo = 'M'
+
+rollback transaction 
+
+PRINT 'Executar Dois Rollbacks Geraria um erro de execução do segundo';
+
+ROLLBACK TRANSACTION;
+
+PRINT 'Transação defeita'
+
+----- Begin  alinhado
+
+begin transaction
+
+if @@TRANCOUNT =0
+begin
+  select nome, nome_curso,sexo
+
+   from tTemp
+   where  sexo = 'M'
+   Print  ' So  executa'
+end 
+
+rollback   transaction
+
+Print  'Transação desfeita'
+
+drop  table  tTemp
